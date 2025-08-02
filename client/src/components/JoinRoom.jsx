@@ -1,12 +1,12 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { AuthContext } from "../context/AuthContext";
 
 export default function JoinRoom() {
   const [roomId, setRoomId] = useState("");
-  const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const { api } = useContext(AuthContext);
   const navigate = useNavigate();
 
   const handleJoin = async (e) => {
@@ -17,136 +17,64 @@ export default function JoinRoom() {
       setError("Room ID is required.");
       return;
     }
-    if (!username.trim()) {
-      setError("Username is required.");
-      return;
-    }
-    if (!password) {
-      setError("Password is required.");
-      return;
-    }
 
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE}/room/join`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          roomId: roomId.trim(),
-          password,
-          username: username.trim(),
-        }),
-      });
+      const res = await api.post("/api/rooms/join", { roomId: roomId.trim() });
 
-      const text = await res.text();
-      let data;
-      try {
-        data = JSON.parse(text);
-      } catch {
-        throw new Error(`Expected JSON but got: ${text.slice(0, 200)}`);
-      }
-
-      if (!res.ok) {
-        throw new Error(data.error || `Server error ${res.status}`);
-      }
-
-      if (!data.roomId || !data.token) {
+      if (res.data?.roomId) {
+        navigate(`/room/${res.data.roomId}`);
+      } else {
         throw new Error("Invalid response from server");
       }
-
-      localStorage.setItem("roomToken", data.token);
-      navigate(`/room/${data.roomId}`);
     } catch (err) {
-      setError(err.message);
+      setError(
+        err.response?.data?.error || err.message || "Failed to join room."
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="relative min-h-screen px-6 md:px-24 pt-24 pb-16 text-white font-light overflow-hidden bg-gradient-to-br from-[#0a0b12] via-[#15131f] to-[#1b182a]">
-      <img
-        src="/ambient-bg.svg"
-        alt=""
-        className="absolute inset-0 -z-10 opacity-30 pointer-events-none blur-sm"
-      />
-
-      <div className="max-w-xl mx-auto bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-10 shadow-xl">
-        <h1 className="text-center text-4xl md:text-5xl text-yellow-200 font-semibold mb-10 tracking-wider drop-shadow font-orbitron">
-          Join a Room
-        </h1>
-
-        <form onSubmit={handleJoin} className="space-y-6">
-          <div>
-            <label className="block text-yellow-300/80 text-xs font-mono tracking-widest uppercase mb-1">
-              Room ID
-            </label>
-            <input
-              type="text"
-              required
-              value={roomId}
-              onChange={(e) => setRoomId(e.target.value)}
-              className="w-full px-4 py-3 rounded-md bg-[#11172a] border border-yellow-300/20 text-yellow-100 placeholder-slate-400 font-light focus:outline-none focus:ring-1 focus:ring-yellow-300"
-              placeholder="Enter room ID"
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label className="block text-yellow-300/80 text-xs font-mono tracking-widest uppercase mb-1">
-              Username
-            </label>
-            <input
-              type="text"
-              required
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="w-full px-4 py-3 rounded-md bg-[#11172a] border border-yellow-300/20 text-yellow-100 placeholder-slate-400 font-light focus:outline-none focus:ring-1 focus:ring-yellow-300"
-              placeholder="Your display name"
-              disabled={loading}
-            />
-          </div>
-
-          <div>
-            <label className="block text-yellow-300/80 text-xs font-mono tracking-widest uppercase mb-1">
-              Password
-            </label>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 rounded-md bg-[#11172a] border border-yellow-300/20 text-yellow-100 placeholder-slate-400 font-light focus:outline-none focus:ring-1 focus:ring-yellow-300"
-              placeholder="Room password"
-              disabled={loading}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full px-6 py-3 bg-[#c1a469] text-black font-orbitron text-sm tracking-wide rounded-md shadow hover:brightness-110 transition disabled:opacity-60"
-          >
-            {loading ? "Joining…" : "Join Room"}
-          </button>
-        </form>
-
-        {error && (
-          <p className="text-red-400 text-sm text-center font-mono mt-2">
-            {error}
-          </p>
-        )}
-
-        <p className="text-slate-400 text-xs mt-10 text-center">
-          Need to create a room?{" "}
-          <a
-            href="/create"
-            className="text-yellow-300 underline hover:text-yellow-200 transition"
-          >
-            Create it here
-          </a>
+    <div className="w-full border border-white/10 rounded-2xl bg-white/5 backdrop-blur-md shadow-lg p-8">
+      <div className="text-center space-y-2">
+        <h2 className="text-3xl font-orbitron text-primary tracking-widest">
+          Join Room ⌁
+        </h2>
+        <p className="text-sm text-slate-400">
+          Enter an existing collaboration space.
         </p>
       </div>
+
+      <form onSubmit={handleJoin} className="mt-8 space-y-6 text-sm">
+        <div className="flex flex-col">
+          <label className="text-slate-300 mb-1 font-mono">🔑 Room ID</label>
+          <input
+            type="text"
+            required
+            value={roomId}
+            onChange={(e) => setRoomId(e.target.value)}
+            placeholder="Enter Room ID"
+            disabled={loading}
+            className="bg-transparent border-b border-primary/20 placeholder-slate-400 px-2 py-2 outline-none focus:border-primary transition"
+          />
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full py-3 mt-4 font-semibold text-sm bg-primary/80 hover:bg-primary text-black rounded-lg tracking-wider uppercase transition-all disabled:opacity-50"
+        >
+          {loading ? "Joining..." : "Join & Enter"}
+        </button>
+      </form>
+
+      {error && (
+        <p className="text-red-400 text-sm text-center font-mono mt-4">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

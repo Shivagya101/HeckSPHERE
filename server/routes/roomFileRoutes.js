@@ -2,13 +2,14 @@ const express = require("express");
 const router = express.Router({ mergeParams: true });
 const multer = require("multer");
 const path = require("path");
-const verifyRoomToken = require("../middleware/authRoom");
+const { ensureAuth } = require("../middleware/auth"); // Import the new middleware
 const {
   uploadFile,
   listFiles,
   downloadFile,
 } = require("../controllers/fileController");
 
+// Multer storage configuration remains the same
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, path.resolve(process.cwd(), "uploads"));
@@ -22,25 +23,13 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-router.post("/", verifyRoomToken, (req, res, next) => {
-  if (req.roomId !== req.params.roomId)
-    return res.status(403).json({ error: "Room mismatch." });
-  upload.single("file")(req, res, (err) => {
-    if (err) return next(err);
-    uploadFile(req, res);
-  });
-});
+// Use ensureAuth and the multer upload middleware
+router.post("/", ensureAuth, upload.single("file"), uploadFile);
 
-router.get("/", verifyRoomToken, (req, res) => {
-  if (req.roomId !== req.params.roomId)
-    return res.status(403).json({ error: "Room mismatch." });
-  listFiles(req, res);
-});
+// Use ensureAuth
+router.get("/", ensureAuth, listFiles);
 
-router.get("/:fileId", verifyRoomToken, (req, res) => {
-  if (req.roomId !== req.params.roomId)
-    return res.status(403).json({ error: "Room mismatch." });
-  downloadFile(req, res);
-});
+// Use ensureAuth
+router.get("/:fileId", ensureAuth, downloadFile);
 
 module.exports = router;

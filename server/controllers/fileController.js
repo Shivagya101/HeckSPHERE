@@ -2,20 +2,22 @@ const path = require("path");
 const fs = require("fs");
 const FileMeta = require("../models/FileMeta");
 
-// ensure upload directory exists
 const UPLOAD_DIR = path.resolve(process.cwd(), "uploads");
 if (!fs.existsSync(UPLOAD_DIR)) fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 
 const uploadFile = async (req, res) => {
   try {
-    const { roomId, username } = req;
+    // GET DATA FROM NEW LOCATIONS
+    const { roomId } = req.params;
+    const { username } = req.user;
+
     if (!req.file) return res.status(400).json({ error: "No file provided." });
 
     const meta = await FileMeta.create({
       roomId,
       originalName: req.file.originalname,
       storedName: req.file.filename,
-      uploader: username,
+      uploader: username, // Use username from req.user
       mimeType: req.file.mimetype,
       size: req.file.size,
     });
@@ -29,7 +31,8 @@ const uploadFile = async (req, res) => {
 
 const listFiles = async (req, res) => {
   try {
-    const { roomId } = req;
+    // GET DATA FROM NEW LOCATIONS
+    const { roomId } = req.params;
     const files = await FileMeta.find({ roomId })
       .sort({ createdAt: -1 })
       .lean();
@@ -42,9 +45,10 @@ const listFiles = async (req, res) => {
 
 const downloadFile = async (req, res) => {
   try {
-    const { roomId } = req;
-    const { fileId } = req.params;
+    // GET DATA FROM NEW LOCATIONS
+    const { roomId, fileId } = req.params;
     const file = await FileMeta.findById(fileId);
+
     if (!file) return res.status(404).json({ error: "File not found." });
     if (file.roomId !== roomId)
       return res.status(403).json({ error: "Room mismatch." });
