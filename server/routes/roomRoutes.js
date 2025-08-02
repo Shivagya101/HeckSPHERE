@@ -1,3 +1,5 @@
+// server/routes/roomRoutes.js
+
 const express = require("express");
 const router = express.Router();
 const {
@@ -5,20 +7,16 @@ const {
   joinRoom,
   getRepoCommits,
   getUserRooms,
+  getRepoBranches,
 } = require("../controllers/roomController");
-const { ensureAuth } = require("../middleware/auth");
-const { getRepoBranches } = require("../controllers/roomController");
+// Import the new JWT middleware
+const authMiddleware = require("../middleware/authMiddleware");
 
-// GET all rooms for the logged-in user (for the dashboard)
-router.get("/", ensureAuth, getUserRooms);
-
-// POST to create a new room
-router.post("/create", ensureAuth, createRoom);
-
-// POST to join an existing room
-router.post("/join", ensureAuth, joinRoom);
-router.get("/:roomId/commits/branches", ensureAuth, getRepoBranches);
-// The commits route remains the same, as it will be accessed with a query string
-router.get("/:roomId/commits", ensureAuth, getRepoCommits);
+// Use the new authMiddleware on all routes
+router.get("/", authMiddleware, getUserRooms);
+router.post("/create", authMiddleware, createRoom);
+router.post("/join", authMiddleware, joinRoom);
+router.get("/:roomId/commits", authMiddleware, getRepoCommits);
+router.get("/:roomId/commits/branches", authMiddleware, getRepoBranches);
 
 module.exports = router;

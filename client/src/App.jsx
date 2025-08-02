@@ -1,18 +1,16 @@
-import React, { useContext } from "react";
+import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthContext } from "./context/AuthContext";
+import { useAuth } from "./context/AuthContext";
 
-// Import Pages
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard"; // We will create this next
+import Register from "./pages/Register"; // Import the new Register page
+import Dashboard from "./pages/Dashboard";
 import RoomPage from "./pages/RoomPage";
-
-// Import Components
 import ProtectedRoute from "./components/ProtectedRoute";
 import "./App.css";
 
 function App() {
-  const { user, loading } = useContext(AuthContext);
+  const { user, loading } = useAuth();
 
   if (loading) {
     return <div>Loading Application...</div>;
@@ -25,6 +23,12 @@ function App() {
           <Route
             path="/login"
             element={user ? <Navigate to="/dashboard" /> : <Login />}
+          />
+
+          {/* ADDED: Route for the new Register page */}
+          <Route
+            path="/register"
+            element={user ? <Navigate to="/dashboard" /> : <Register />}
           />
 
           <Route
@@ -45,7 +49,6 @@ function App() {
             }
           />
 
-          {/* Default route redirects to dashboard if logged in, otherwise to login */}
           <Route
             path="*"
             element={<Navigate to={user ? "/dashboard" : "/login"} />}

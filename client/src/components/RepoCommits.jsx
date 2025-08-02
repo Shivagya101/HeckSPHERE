@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 const RepoCommits = ({ roomId }) => {
   const [branches, setBranches] = useState([]);
@@ -7,7 +7,7 @@ const RepoCommits = ({ roomId }) => {
   const [commits, setCommits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const { api } = useContext(AuthContext);
+  const { api } = useAuth();
 
   // Step 1: Fetch all branches when the component loads
   useEffect(() => {
@@ -17,7 +17,6 @@ const RepoCommits = ({ roomId }) => {
         const { data } = await api.get(`/api/rooms/${roomId}/commits/branches`);
         setBranches(data);
         if (data.length > 0) {
-          // Automatically select the first branch (often 'main' or 'master')
           setSelectedBranch(data[0]);
         }
       } catch (err) {
@@ -36,13 +35,15 @@ const RepoCommits = ({ roomId }) => {
     const fetchCommits = async () => {
       try {
         setLoading(true);
+        setError(""); // Clear previous errors
+        setCommits([]); // Clear old commits before fetching new ones
         const { data } = await api.get(`/api/rooms/${roomId}/commits`, {
-          params: { branch: selectedBranch }, // Pass branch as a query param
+          params: { branch: selectedBranch },
         });
         setCommits(data);
       } catch (err) {
         setError("Failed to fetch commits for this branch.");
-        setCommits([]); // Clear old commits on error
+        setCommits([]);
       } finally {
         setLoading(false);
       }
@@ -51,17 +52,18 @@ const RepoCommits = ({ roomId }) => {
   }, [selectedBranch, roomId, api]);
 
   return (
-    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-6 shadow-xl">
+    <div className="border border-white/10 rounded-2xl bg-white/5 backdrop-blur-md shadow-lg p-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-orbitron text-gold-300 uppercase tracking-wide">
-          Recent Commits
+        {/* STYLE: Use the theme's 'primary' color */}
+        <h2 className="text-2xl font-orbitron text-primary tracking-widest">
+          Commits ⌁
         </h2>
-        {/* Branch Selection Dropdown */}
         <select
           value={selectedBranch}
           onChange={(e) => setSelectedBranch(e.target.value)}
           disabled={loading || branches.length === 0}
-          className="bg-[#11172a] border border-yellow-300/20 text-yellow-100 text-sm rounded-md p-2 focus:ring-1 focus:ring-yellow-300"
+          // STYLE: Use the theme's 'primary' color
+          className="bg-transparent border-b border-primary/20 text-primary text-sm p-2 outline-none focus:border-primary transition"
         >
           {branches.map((branchName) => (
             <option key={branchName} value={branchName}>
@@ -71,19 +73,16 @@ const RepoCommits = ({ roomId }) => {
         </select>
       </div>
 
-      {/* Commits List */}
-      <div className="space-y-4 max-h-96 overflow-y-auto pr-2">
-        {loading && <p className="text-center text-gray-400">Loading...</p>}
+      <div className="space-y-3 max-h-96 overflow-y-auto pr-2">
+        {loading && <p className="text-center text-slate-400">Loading...</p>}
         {error && <p className="text-center text-red-400">{error}</p>}
         {!loading &&
           !error &&
           commits.map((commit) => (
-            <div
-              key={commit.sha}
-              className="bg-[#11172a] p-3 rounded-lg border border-yellow-300/10"
-            >
-              <p className="text-sm font-mono text-yellow-100 truncate">
-                {commit.message.split("\n")[0]}
+            <div key={commit.sha} className="bg-black/20 p-3 rounded-lg">
+              {/* FIX: Check if commit.message exists before splitting to prevent crash */}
+              <p className="text-sm text-slate-200 truncate">
+                {commit.message && commit.message.split("\n")[0]}
               </p>
               <div className="mt-2 flex items-center">
                 {commit.avatar && (
@@ -93,7 +92,7 @@ const RepoCommits = ({ roomId }) => {
                     className="w-5 h-5 rounded-full mr-2"
                   />
                 )}
-                <span className="text-xs text-gray-400">
+                <span className="text-xs text-slate-500 font-mono">
                   {commit.author} on{" "}
                   {new Date(commit.date).toLocaleDateString()}
                 </span>

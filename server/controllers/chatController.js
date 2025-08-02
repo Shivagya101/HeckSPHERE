@@ -2,7 +2,8 @@ const ChatMessage = require("../models/ChatMessage");
 
 const fetchRecent = async (req, res) => {
   try {
-    const { roomId } = req;
+    // FIX: Get roomId from req.params
+    const { roomId } = req.params;
     const messages = await ChatMessage.find({ roomId })
       .sort({ createdAt: -1 })
       .limit(50)

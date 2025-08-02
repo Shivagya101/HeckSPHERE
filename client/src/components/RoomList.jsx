@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import RoomCard from "./RoomCard"; // Import the new card component
 
 const RoomList = () => {
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const { api } = useContext(AuthContext);
+  const { api } = useAuth();
 
   useEffect(() => {
     const fetchRooms = async () => {

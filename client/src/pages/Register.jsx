@@ -2,22 +2,26 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
-const Login = () => {
+const Register = () => {
   const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
-  const { login } = useAuth();
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+    if (password.length < 4) {
+      return setError("Password must be at least 4 characters long.");
+    }
     try {
-      await login(email, password);
+      await register(email, username, password);
       navigate("/dashboard");
     } catch (err) {
       setError(
-        err.response?.data?.message || "Login failed. Please try again."
+        err.response?.data?.message || "Registration failed. Please try again."
       );
     }
   };
@@ -27,10 +31,10 @@ const Login = () => {
       <div className="w-full max-w-md p-8 border border-white/10 rounded-2xl bg-white/5 backdrop-blur-md shadow-lg shadow-primary/10">
         <div className="text-center space-y-2 mb-8">
           <h1 className="text-3xl font-orbitron text-primary tracking-widest">
-            Login ⌁
+            Register ⌁
           </h1>
           <p className="text-sm text-slate-400">
-            Authenticate to begin your mission.
+            Create your account to join the mission.
           </p>
         </div>
 
@@ -48,6 +52,16 @@ const Login = () => {
             />
           </div>
           <div className="flex flex-col">
+            <label className="text-slate-300 mb-1 font-mono">🧑‍🚀 Username</label>
+            <input
+              type="text"
+              required
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="bg-transparent border-b border-primary/20 placeholder-slate-400 px-2 py-2 outline-none focus:border-primary transition"
+            />
+          </div>
+          <div className="flex flex-col">
             <label className="text-slate-300 mb-1 font-mono">🔒 Password</label>
             <input
               type="password"
@@ -61,7 +75,7 @@ const Login = () => {
             type="submit"
             className="w-full py-3 mt-4 font-semibold text-sm bg-primary/80 hover:bg-primary text-black rounded-lg tracking-wider uppercase transition-all"
           >
-            Login
+            Register
           </button>
         </form>
 
@@ -72,12 +86,12 @@ const Login = () => {
         )}
 
         <p className="text-slate-400 text-xs mt-6 text-center">
-          Don't have an account?{" "}
+          Already have an account?{" "}
           <Link
-            to="/register"
+            to="/login"
             className="text-primary underline hover:text-primary/80 transition"
           >
-            Register here
+            Login here
           </Link>
           .
         </p>
@@ -86,4 +100,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Register;

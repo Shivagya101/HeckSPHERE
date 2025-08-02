@@ -1,8 +1,8 @@
 import { useEffect, useState, useRef, useCallback, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { io } from "socket.io-client";
-import { AuthContext } from "../context/AuthContext"; // Import our AuthContext
-import RepoCommits from "../components/RepoCommits"; // Import the new component
+import { useAuth } from "../context/AuthContext";
+import RepoCommits from "../components/RepoCommits";
 const formatTime = (sec) => {
   const m = Math.floor(sec / 60)
     .toString()
@@ -19,7 +19,7 @@ export default function RoomPage() {
       alert("Room ID copied to clipboard!");
     });
   };
-  const { api } = useContext(AuthContext);
+  const { api, token } = useAuth();
   const [socket, setSocket] = useState(null);
 
   // Notes
@@ -79,7 +79,7 @@ export default function RoomPage() {
     const fetchChatHistory = async () => {
       try {
         // Add /api/ before room/
-        const { data } = await api.get(`/api/room/${roomId}/chat`);
+        const { data } = await api.get(`/api/rooms/${roomId}/chat`);
         mergeChatMessages(data);
       } catch (e) {
         console.error("Failed to fetch chat history", e);
@@ -89,7 +89,7 @@ export default function RoomPage() {
     const fetchFiles = async () => {
       try {
         // Add /api/ before room/
-        const { data } = await api.get(`/api/room/${roomId}/files`);
+        const { data } = await api.get(`/api/rooms/${roomId}/files`);
         setFiles(data);
       } catch (e) {
         console.error("Failed to fetch files", e);
@@ -100,9 +100,11 @@ export default function RoomPage() {
     fetchFiles();
 
     const s = io(import.meta.env.VITE_API_BASE_URL, {
-      withCredentials: true,
+      auth: {
+        token: token, // Pass the JWT for authentication
+      },
       query: {
-        roomId, // Send the roomId during connection
+        roomId,
       },
     });
 
@@ -147,7 +149,7 @@ export default function RoomPage() {
       if (noteTimeout.current) clearTimeout(noteTimeout.current);
       s.disconnect();
     };
-  }, [roomId, api]);
+  }, [roomId, api, token]);
 
   const emitNote = useCallback(
     (value) => socket?.emit("notes:update", value),
@@ -189,7 +191,7 @@ export default function RoomPage() {
     form.append("file", file);
 
     try {
-      const { data } = await api.post(`/api/room/${roomId}/files`, form, {
+      const { data } = await api.post(`/api/rooms/${roomId}/files`, form, {
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round(
             (progressEvent.loaded * 100) / progressEvent.total
@@ -213,7 +215,7 @@ export default function RoomPage() {
   // REWRITTEN: downloadFile to use the API client
   const downloadFile = async (file) => {
     try {
-      const response = await api.get(`/api/room/${roomId}/files/${file._id}`, {
+      const response = await api.get(`/api/rooms/${roomId}/files/${file._id}`, {
         responseType: "blob",
       });
       const url = URL.createObjectURL(new Blob([response.data]));
@@ -235,7 +237,7 @@ export default function RoomPage() {
     )
       return;
     try {
-      await api.delete(`/api/room/${roomId}/files/${file._id}`);
+      await api.delete(`/api/rooms/${roomId}/files/${file._id}`);
       setFiles((prev) => prev.filter((f) => f._id !== file._id));
     } catch (e) {
       setError("Delete error: " + e.message);

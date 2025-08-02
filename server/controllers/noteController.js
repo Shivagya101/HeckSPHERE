@@ -2,7 +2,8 @@ const Note = require("../models/Note");
 
 const getNote = async (req, res) => {
   try {
-    const { roomId } = req;
+    // FIX: Get roomId from req.params
+    const { roomId } = req.params;
     let note = await Note.findOne({ roomId });
     if (!note) {
       note = await Note.create({ roomId });

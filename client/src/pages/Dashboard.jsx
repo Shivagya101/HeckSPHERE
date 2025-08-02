@@ -1,30 +1,33 @@
-import React, { useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
+import React from "react";
+import { useAuth } from "../context/AuthContext"; // Import the useAuth hook
 import CreateRoom from "../components/CreateRoom";
 import JoinRoom from "../components/JoinRoom";
 import RoomList from "../components/RoomList";
 
 const Dashboard = () => {
-  const { user } = useContext(AuthContext);
+  // Get the user and the new logout function from the context
+  const { user, logout } = useAuth();
 
+  // The new handleLogout function simply calls the context's logout
   const handleLogout = () => {
-    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/logout`;
+    logout();
   };
 
   return (
     <div className="min-h-screen p-6 sm:p-8 md:p-12 text-white font-light bg-gradient-to-br from-[#1f1c2c] to-[#11172a]">
       <header className="max-w-7xl mx-auto mb-12 flex justify-between items-center">
         <div className="flex items-center gap-4">
-          <img
-            src={user?.avatarUrl}
-            alt="avatar"
-            className="w-12 h-12 rounded-full border-2 border-primary/50"
-          />
+          {/* UPDATED: Replaced the img tag with a styled initial */}
+          <div className="w-12 h-12 rounded-full border-2 border-primary/50 bg-black/20 flex items-center justify-center">
+            <span className="text-xl font-semibold text-primary">
+              {user?.username?.charAt(0).toUpperCase()}
+            </span>
+          </div>
           <div>
             <p className="text-lg font-semibold font-orbitron text-primary">
               {user?.username}
             </p>
-            <p className="text-xs text-slate-400">GitHub User</p>
+            <p className="text-xs text-slate-400">Standard User</p>
           </div>
         </div>
         <button

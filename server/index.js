@@ -3,9 +3,6 @@ const express = require("express");
 const http = require("http");
 const mongoose = require("mongoose");
 const cors = require("cors");
-const session = require("express-session");
-const passport = require("passport");
-const MongoStore = require("connect-mongo");
 
 const roomRoutes = require("./routes/roomRoutes");
 const noteRoutes = require("./routes/noteRoutes");
@@ -14,65 +11,33 @@ const roomFileRoutes = require("./routes/roomFileRoutes");
 const authRoutes = require("./routes/authRoutes");
 
 const app = express();
-require("./config/passport")(passport);
 
 // --- Middleware ---
-
-// 1. CORS for Express (uses environment variable for production)
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL,
-    credentials: true,
-  })
-);
-
+app.use(cors({ origin: process.env.CLIENT_URL })); // Simplified CORS
 app.use(express.json());
 
-// 2. Shared session middleware with production-ready cookie settings
-const sessionMiddleware = session({
-  secret: process.env.SESSION_SECRET,
-  resave: false,
-  saveUninitialized: false,
-  store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
-  cookie: {
-    httpOnly: true,
-    // Use secure cookies in production (requires HTTPS)
-    secure: process.env.NODE_ENV === "production",
-    // Allow cross-site cookies for your frontend/backend domains
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-  },
-});
-app.use(sessionMiddleware);
-
-// 3. Passport initialization
-app.use(passport.initialize());
-app.use(passport.session());
-
 // --- Routes ---
-
 app.use("/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
-app.use("/api/room/:roomId/note", noteRoutes);
-app.use("/api/room/:roomId/chat", roomChatRoutes);
-app.use("/api/room/:roomId/files", roomFileRoutes);
+
+// FIX THE PATHS IN THE NEXT THREE LINES
+app.use("/api/rooms/:roomId/note", noteRoutes);
+app.use("/api/rooms/:roomId/chat", roomChatRoutes);
+app.use("/api/rooms/:roomId/files", roomFileRoutes);
 
 // --- HTTP server & Socket.IO setup ---
-
 const server = http.createServer(app);
 const { Server } = require("socket.io");
-
 const io = new Server(server, {
   cors: {
     origin: process.env.CLIENT_URL,
-    credentials: true,
   },
 });
 
-// Pass sessionMiddleware to Socket.IO handlers to enable user authentication
-require("./socket/socketHandler")(io, sessionMiddleware);
+// Pass only `io` to the handler, as session middleware is no longer used
+require("./socket/socketHandler")(io);
 
 // --- Connect DB and start server ---
-
 const start = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);

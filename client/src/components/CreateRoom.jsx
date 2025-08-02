@@ -1,12 +1,12 @@
 import { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import { AuthContext } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 
 export default function CreateRoom() {
   const [repoUrl, setRepoUrl] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const { api } = useContext(AuthContext);
+  const { api } = useAuth();
   const navigate = useNavigate();
 
   const handleCreate = async (e) => {

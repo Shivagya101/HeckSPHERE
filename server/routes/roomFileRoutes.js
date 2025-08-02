@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router({ mergeParams: true });
 const multer = require("multer");
 const path = require("path");
-const { ensureAuth } = require("../middleware/auth"); // Import the new middleware
+// FIX: Import the new JWT middleware
+const authMiddleware = require("../middleware/authMiddleware");
 const {
   uploadFile,
   listFiles,
@@ -24,12 +25,12 @@ const storage = multer.diskStorage({
 const upload = multer({ storage });
 
 // Use ensureAuth and the multer upload middleware
-router.post("/", ensureAuth, upload.single("file"), uploadFile);
+router.post("/", authMiddleware, upload.single("file"), uploadFile);
 
-// Use ensureAuth
-router.get("/", ensureAuth, listFiles);
+// FIX: Use the new authMiddleware
+router.get("/", authMiddleware, listFiles);
 
-// Use ensureAuth
-router.get("/:fileId", ensureAuth, downloadFile);
+// FIX: Use the new authMiddleware
+router.get("/:fileId", authMiddleware, downloadFile);
 
 module.exports = router;

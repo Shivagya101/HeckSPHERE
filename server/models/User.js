@@ -1,20 +1,17 @@
 const mongoose = require("mongoose");
 
 const UserSchema = new mongoose.Schema({
-  githubId: {
+  email: {
     type: String,
     required: true,
     unique: true,
+    match: /.+\@.+\..+/, // Simple email validation
   },
   username: {
     type: String,
     required: true,
   },
-  avatarUrl: {
-    type: String,
-  },
-  // ADD THIS LINE
-  accessToken: {
+  password: {
     type: String,
     required: true,
   },
