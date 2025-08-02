@@ -16,7 +16,9 @@ const authRoutes = require("./routes/authRoutes");
 const app = express();
 require("./config/passport")(passport);
 
-// ✅ 1. CORS for Express
+// --- Middleware ---
+
+// 1. CORS for Express (uses environment variable for production)
 app.use(
   cors({
     origin: process.env.CLIENT_URL,
@@ -26,7 +28,7 @@ app.use(
 
 app.use(express.json());
 
-// ✅ 2. Shared session middleware (used by Express and Socket.IO)
+// 2. Shared session middleware with production-ready cookie settings
 const sessionMiddleware = session({
   secret: process.env.SESSION_SECRET,
   resave: false,
@@ -34,24 +36,28 @@ const sessionMiddleware = session({
   store: MongoStore.create({ mongoUrl: process.env.MONGO_URI }),
   cookie: {
     httpOnly: true,
-    secure: false, // true if using HTTPS
-    sameSite: "lax",
+    // Use secure cookies in production (requires HTTPS)
+    secure: process.env.NODE_ENV === "production",
+    // Allow cross-site cookies for your frontend/backend domains
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
   },
 });
 app.use(sessionMiddleware);
 
-// ✅ 3. Passport initialization
+// 3. Passport initialization
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ✅ 4. Routes
+// --- Routes ---
+
 app.use("/auth", authRoutes);
 app.use("/api/rooms", roomRoutes);
 app.use("/api/room/:roomId/note", noteRoutes);
 app.use("/api/room/:roomId/chat", roomChatRoutes);
 app.use("/api/room/:roomId/files", roomFileRoutes);
 
-// ✅ 5. HTTP server + Socket.IO setup
+// --- HTTP server & Socket.IO setup ---
+
 const server = http.createServer(app);
 const { Server } = require("socket.io");
 
@@ -62,10 +68,11 @@ const io = new Server(server, {
   },
 });
 
-// ✅ 6. Socket.IO handlers — pass sessionMiddleware to enable user auth
+// Pass sessionMiddleware to Socket.IO handlers to enable user authentication
 require("./socket/socketHandler")(io, sessionMiddleware);
 
-// ✅ 7. Connect DB and start server
+// --- Connect DB and start server ---
+
 const start = async () => {
   try {
     await mongoose.connect(process.env.MONGO_URI);
