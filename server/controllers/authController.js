@@ -2,19 +2,22 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-// Register a new user
 exports.register = async (req, res) => {
   try {
     const { email, username, password } = req.body;
+
     if (!email || !username || !password) {
       return res.status(400).json({ message: "Please enter all fields." });
     }
 
-    const existingUser = await User.findOne({ email });
-    if (existingUser) {
-      return res
-        .status(400)
-        .json({ message: "User with this email already exists." });
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({ message: "Email already in use." });
+    }
+
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(400).json({ message: "Username already taken." });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -36,7 +39,22 @@ exports.register = async (req, res) => {
       },
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Registration error:", err);
+
+    // Mongoose validation error (e.g. password too short)
+    if (err.name === "ValidationError") {
+      const messages = Object.values(err.errors).map((val) => val.message);
+      return res.status(400).json({ message: messages[0] });
+    }
+
+    // MongoDB duplicate key error (in case user somehow bypassed checks)
+    if (err.code === 11000) {
+      return res.status(400).json({
+        message: "Email or username already exists.",
+      });
+    }
+
+    res.status(500).json({ message: "Internal server error." });
   }
 };
 
