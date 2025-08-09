@@ -14,11 +14,11 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen p-6 sm:p-8 md:p-12 text-white font-light bg-gradient-to-br from-[#1f1c2c] to-[#11172a]">
+    <div className="min-h-screen p-6 sm:p-8 md:p-12 text-white font-light bg-gradient-to-br from-[#362779] to-[#172860]">
       <header className="max-w-7xl mx-auto mb-12 flex justify-between items-center">
         <div className="flex items-center gap-4">
           {/* UPDATED: Replaced the img tag with a styled initial */}
-          <div className="w-12 h-12 rounded-full border-2 border-primary/50 bg-black/20 flex items-center justify-center">
+          <div className="w-12 h-12 rounded-full border-2 border-primary/50 bg-[#362779]/20 flex items-center justify-center">
             <span className="text-xl font-semibold text-primary">
               {user?.username?.charAt(0).toUpperCase()}
             </span>
@@ -27,7 +27,7 @@ const Dashboard = () => {
             <p className="text-lg font-semibold font-orbitron text-primary">
               {user?.username}
             </p>
-            <p className="text-xs text-slate-400">Standard User</p>
+            <p className="text-xs text-white-400">Standard User</p>
           </div>
         </div>
         <button

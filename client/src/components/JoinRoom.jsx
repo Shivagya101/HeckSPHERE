@@ -39,9 +39,7 @@ export default function JoinRoom() {
   return (
     <div className="w-full border border-white/10 rounded-2xl bg-white/5 backdrop-blur-md shadow-lg p-8">
       <div className="text-center space-y-2">
-        <h2 className="text-3xl font-orbitron text-primary tracking-widest">
-          Join Room ⌁
-        </h2>
+        <h2 className="text-3xl font-orbitron tracking-widest">Join Room ⌁</h2>
         <p className="text-sm text-slate-400">
           Enter an existing collaboration space.
         </p>
@@ -64,7 +62,7 @@ export default function JoinRoom() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 mt-4 font-semibold text-sm bg-primary/80 hover:bg-primary text-black rounded-lg tracking-wider uppercase transition-all disabled:opacity-50"
+          className="w-full py-3 mt-4 font-semibold text-sm bg-primary/80 hover:bg-primary text-white border border-white rounded-lg tracking-wider uppercase transition-all disabled:opacity-50"
         >
           {loading ? "Joining..." : "Join & Enter"}
         </button>

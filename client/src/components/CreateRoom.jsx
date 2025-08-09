@@ -68,7 +68,7 @@ export default function CreateRoom() {
           type="submit"
           disabled={loading}
           // UPDATED: Button styles to match example
-          className="w-full py-3 mt-4 font-semibold text-sm bg-primary/80 hover:bg-primary text-black rounded-lg tracking-wider uppercase transition-all disabled:opacity-50"
+          className="w-full py-3 mt-4 font-semibold text-sm bg-primary/80 hover:bg-primary text-white rounded-lg border border-white tracking-wider uppercase transition-all disabled:opacity-50"
         >
           {loading ? "Creating..." : "Create & Enter"}
         </button>
