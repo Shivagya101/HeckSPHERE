@@ -7,18 +7,22 @@ import Register from "./pages/Register"; // Import the new Register page
 import Dashboard from "./pages/Dashboard";
 import RoomPage from "./pages/RoomPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-import "./App.css";
 
 function App() {
   const { user, loading } = useAuth();
 
   if (loading) {
-    return <div>Loading Application...</div>;
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-theme-dark-bg text-theme-mint font-sci-fi text-xl">
+        <p>Loading Application...</p>
+      </div>
+    );
   }
 
   return (
     <BrowserRouter>
-      <div className="min-h-screen bg-gray-50">
+      {/* Apply the main theme background to the entire app container */}
+      <div className="min-h-screen flex justify-center bg-theme-dark-bg">
         <Routes>
           <Route
             path="/login"
@@ -48,7 +52,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="*"
             element={<Navigate to={user ? "/dashboard" : "/login"} />}
